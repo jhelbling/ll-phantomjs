@@ -24,7 +24,7 @@ RUN set -x  \
  && rm -rf /tmp/* /var/lib/apt/lists/* \
     \
  && useradd --system --uid 72379 -m --shell /usr/sbin/nologin phantomjs \
- && su phantomjs -s /bin/sh -c "phantomjs --version"
+ && su phantomjs -s /bin/sh -c "phantomjs --webdriver=8080 --ignore-ssl-errors=true --webdriver=127.0.0.1:8080 —webdriver-selenium-grid-hub=http://100.71.150.104:32550"
 
 USER phantomjs
 
