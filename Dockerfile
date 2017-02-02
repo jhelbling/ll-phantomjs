@@ -1,34 +1,36 @@
 FROM debian:jessie
 
+
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
         ca-certificates \
         bzip2 \
         libfontconfig \
+        unzip \
+        curl \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
 RUN set -x  \
- && apt-get update \
- && apt-get install -y --no-install-recommends \
-        curl \
  && mkdir /tmp/phantomjs \
- && curl -L https://bitbucket.org/ariya/phantomjs/downloads/phantomjs-2.1.1-linux-x86_64.tar.bz2 \
+ && curl -L https://raw.githubusercontent.com/mrorgues/PhantomJSCustomEdition/builds/phantomjs-2.1.1-linux-x86_64-workaround_issue_394.tar.bz2 \
         | tar -xj --strip-components=1 -C /tmp/phantomjs \
  && mv /tmp/phantomjs/bin/phantomjs /usr/local/bin \
- && curl -Lo /tmp/dumb-init.deb https://github.com/Yelp/dumb-init/releases/download/v1.1.3/dumb-init_1.1.3_amd64.deb \
- && dpkg -i /tmp/dumb-init.deb \
- && apt-get purge --auto-remove -y \
-        curl \
- && apt-get clean \
- && rm -rf /tmp/* /var/lib/apt/lists/* \
-    \
+    # Run as non-root user.
  && useradd --system --uid 72379 -m --shell /usr/sbin/nologin phantomjs \
- && su phantomjs -s /bin/sh -c "phantomjs -v"
+ && su phantomjs -s /bin/sh -c "phantomjs --version" \
+ && cd /tmp \
+ && curl -O -L https://github.com/madhavajay/ghostdriver/archive/remotehost.zip \
+ && unzip /tmp/remotehost.zip \
+ && mkdir -p /home/phantomjs/ghostdriver/src \
+ && mv /tmp/ghostdriver-remotehost/src /home/phantomjs/ghostdriver \
+    # Clean up
+&& apt-get purge --auto-remove -y \
+     curl \
+     unzip \
+&& apt-get clean \
+&& rm -rf /tmp/* /var/lib/apt/lists/*
 
 USER phantomjs
 
-EXPOSE 8910
-
-ENTRYPOINT ["dumb-init"]
-CMD ["phantomjs --webdriver=8080 --ignore-ssl-errors=true --webdriver=127.0.0.1:8080 —webdriver-selenium-grid-hub=http://100.96.2.9:4444/grid/register/"]
+CMD phantomjs /home/phantomjs/ghostdriver/src/main.js --hub=$HUB --ip=`ip -4 addr show eth0| grep -Po 'inet \K[\d.]+'` --port=$PORT --remoteHost=$REMOTEHOST
