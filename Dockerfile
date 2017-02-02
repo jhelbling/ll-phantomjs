@@ -24,11 +24,11 @@ RUN set -x  \
  && rm -rf /tmp/* /var/lib/apt/lists/* \
     \
  && useradd --system --uid 72379 -m --shell /usr/sbin/nologin phantomjs \
- && su phantomjs -s /bin/sh -c "phantomjs --webdriver=8080 --ignore-ssl-errors=true --webdriver=127.0.0.1:8080 —webdriver-selenium-grid-hub=http://100.71.150.104:32550"
+ && su phantomjs -s /bin/sh -c "phantomjs -v"
 
 USER phantomjs
 
 EXPOSE 8910
 
 ENTRYPOINT ["dumb-init"]
-CMD ["phantomjs"]
+CMD ["phantomjs --webdriver=8080 --ignore-ssl-errors=true --webdriver=127.0.0.1:8080 —webdriver-selenium-grid-hub=http://100.96.2.9:4444/grid/register/"]
